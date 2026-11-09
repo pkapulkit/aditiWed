@@ -1,0 +1,26 @@
+# Publishes the site to Firebase Hosting every time something is pushed to the main branch.
+# The secret below is created for you by `firebase init hosting:github` (see README).
+name: Deploy to Firebase Hosting on merge
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Read Firebase project ID
+        id: project
+        run: echo "id=$(node -p "require('./.firebaserc').projects.default")" >> "$GITHUB_OUTPUT"
+      - name: Fill in WhatsApp preview address
+        run: node scripts/set-share-url.js "${{ steps.project.outputs.id }}"
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ADITI_KRISHAN_WEDDING }}
+          channelId: live
+          projectId: ${{ steps.project.outputs.id }}
